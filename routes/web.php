@@ -43,7 +43,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/rooms', [AdminRoomController::class, 'store'])->name('rooms.store');
     Route::get('/rooms/{id}/edit', [AdminRoomController::class, 'edit'])->name('rooms.edit');
     Route::put('/rooms/{id}', [AdminRoomController::class, 'update'])->name('rooms.update');
-    Route::post('/rooms/{id}/toggle-active', [AdminRoomController::class, 'toggleActive'])
+    Route::patch('/rooms/{id}/toggle-active', [AdminRoomController::class, 'toggleActive'])
         ->name('rooms.toggle-active');
 
     // Reservation management
