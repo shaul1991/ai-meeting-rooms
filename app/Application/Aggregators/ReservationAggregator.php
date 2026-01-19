@@ -14,7 +14,6 @@ use App\Domain\Room\ValueObjects\RoomId;
 use App\Infrastructure\Persistence\Eloquent\Repositories\ReservationRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\RoomRepository;
 use DateTimeImmutable;
-use DomainException;
 use Illuminate\Support\Facades\DB;
 
 class ReservationAggregator

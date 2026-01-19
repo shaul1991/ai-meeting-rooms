@@ -6,7 +6,6 @@ namespace App\Infrastructure\Persistence\Mappers;
 
 use App\Domain\Reservation\Entities\Reservation;
 use App\Domain\Reservation\ValueObjects\ReservationId;
-use App\Domain\Reservation\ValueObjects\ReservationStatus;
 use App\Domain\Reservation\ValueObjects\TimeSlot;
 use App\Domain\Reservation\ValueObjects\UserId;
 use App\Domain\Room\ValueObjects\Money;

@@ -99,7 +99,7 @@ final readonly class TimeSlot implements JsonSerializable
 
         if ($minutes % self::SLOT_DURATION_MINUTES !== 0) {
             throw new InvalidArgumentException(
-                "Time must be aligned to {self::SLOT_DURATION_MINUTES}-minute slots. Got: ".$time->format('H:i')
+                'Time must be aligned to {self::SLOT_DURATION_MINUTES}-minute slots. Got: '.$time->format('H:i')
             );
         }
 
