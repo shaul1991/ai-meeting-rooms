@@ -5,14 +5,22 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Eloquent\Models;
 
 use App\Domain\Reservation\ValueObjects\ReservationStatus;
+use Database\Factories\ReservationModelFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ReservationModel extends Model
 {
-    use HasUuids, SoftDeletes;
+    /** @use HasFactory<ReservationModelFactory> */
+    use HasFactory, HasUuids, SoftDeletes;
+
+    protected static function newFactory(): ReservationModelFactory
+    {
+        return ReservationModelFactory::new();
+    }
 
     protected $table = 'reservations';
 
