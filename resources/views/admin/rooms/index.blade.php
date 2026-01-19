@@ -4,6 +4,8 @@
 
 @section('content')
 <div class="space-y-6">
+    @include('admin.partials.nav')
+
     <div class="flex justify-between items-center">
         <h1 class="text-2xl font-bold text-gray-900">회의실 관리</h1>
         <a href="{{ route('admin.rooms.create') }}"
