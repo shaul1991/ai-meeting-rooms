@@ -131,7 +131,7 @@ class AuthService
             'id' => bin2hex(random_bytes(40)),
             'access_token_id' => $accessToken->id,
             'revoked' => false,
-            'expires_at' => now()->addDays(config('passport.refresh_tokens_expire_in', 14)),
+            'expires_at' => now()->addDays((int) config('passport.refresh_tokens_expire_in', 14)),
         ]);
 
         return $refreshToken->id;
