@@ -78,7 +78,52 @@
                     </a>
                 </p>
             </div>
+
+            <!-- Demo 계정 빠른 로그인 버튼 -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <p class="text-sm text-gray-500 text-center mb-3">Demo 계정으로 빠른 로그인</p>
+                <div class="flex gap-3">
+                    <button
+                        type="button"
+                        onclick="fillDemoCredentials('admin')"
+                        class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition text-sm"
+                    >
+                        👑 Admin
+                    </button>
+                    <button
+                        type="button"
+                        onclick="fillDemoCredentials('user')"
+                        class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition text-sm"
+                    >
+                        👤 User
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    function fillDemoCredentials(type) {
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+
+        if (type === 'admin') {
+            emailInput.value = 'admin@example.com';
+            passwordInput.value = 'admin123';
+        } else if (type === 'user') {
+            emailInput.value = 'user@example.com';
+            passwordInput.value = 'user123';
+        }
+
+        // 입력 필드에 포커스 효과 적용
+        emailInput.classList.add('ring-2', 'ring-indigo-500');
+        passwordInput.classList.add('ring-2', 'ring-indigo-500');
+
+        setTimeout(() => {
+            emailInput.classList.remove('ring-2', 'ring-indigo-500');
+            passwordInput.classList.remove('ring-2', 'ring-indigo-500');
+        }, 500);
+    }
+</script>
 @endsection
