@@ -1,0 +1,48 @@
+# ==========================================
+# 배포용 Docker Compose (meeting-room)
+# ==========================================
+
+services:
+  # ==========================================
+  # Production 컨테이너
+  # ==========================================
+  prod:
+    image: laravel-commu-base:latest
+    container_name: meeting-room-prod
+    restart: unless-stopped
+    profiles:
+      - prod
+    env_file:
+      - ${ENV_FILE:-.env.prod}
+    ports:
+      - "10200:80"
+    volumes:
+      # 애플리케이션 코드
+      - ${APP_PATH:-/var/www/meeting-room}:/var/www/html
+      # 공유 storage (호스트 디렉토리)
+      - ${STORAGE_PATH:-/var/www/meeting-room-storage}:/var/www/html/storage
+      # 설정 파일
+      - ${APP_PATH:-/var/www/meeting-room}/docker/was/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+      - ${APP_PATH:-/var/www/meeting-room}/docker/prod/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini:ro
+      - ${APP_PATH:-/var/www/meeting-room}/docker/prod/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+      - ${APP_PATH:-/var/www/meeting-room}/docker/prod/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${APP_PATH:-/var/www/meeting-room}/docker/prod/default.conf:/etc/nginx/http.d/default.conf:ro
+      - ${APP_PATH:-/var/www/meeting-room}/docker/prod/supervisord.conf:/etc/supervisord.conf:ro
+    networks:
+      - laravel_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+# ==========================================
+# 네트워크
+# ==========================================
+networks:
+  laravel_network:
+    external: true
+    name: ${NETWORK_NAME:-laravel_network}

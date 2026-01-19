@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: meeting-room-postgres
+    environment:
+      POSTGRES_DB: meeting_room
+      POSTGRES_USER: meeting_room
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meeting_room -d meeting_room"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-test:
+    image: postgres:16
+    container_name: meeting-room-postgres-test
+    environment:
+      POSTGRES_DB: testing
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d testing"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: meeting-room-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:

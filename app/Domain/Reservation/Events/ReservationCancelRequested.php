@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Reservation\Events;
+
+use App\Domain\Reservation\ValueObjects\ReservationId;
+
+final readonly class ReservationCancelRequested
+{
+    public function __construct(
+        public ReservationId $reservationId,
+        public string $reason,
+    ) {}
+}
