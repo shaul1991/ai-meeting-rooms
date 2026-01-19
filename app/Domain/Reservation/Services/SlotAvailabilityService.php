@@ -95,6 +95,58 @@ class SlotAvailabilityService
     }
 
     /**
+     * Get all time slots with availability status for a room on a specific date
+     *
+     * @param  array<Reservation>  $existingReservations
+     * @return array<array{time: string, startTime: string, endTime: string, available: bool}>
+     */
+    public function getAllSlotsWithStatus(
+        Room $room,
+        DateTimeImmutable $date,
+        array $existingReservations,
+    ): array {
+        $dayOfWeek = (int) $date->format('w');
+        $operatingHours = $room->operatingHours()->getHoursForDay($dayOfWeek);
+
+        if ($operatingHours === null || ! $operatingHours->isOpen()) {
+            return [];
+        }
+
+        $startTime = new DateTimeImmutable(
+            $date->format('Y-m-d').' '.$operatingHours->startTime()
+        );
+        $endTime = new DateTimeImmutable(
+            $date->format('Y-m-d').' '.$operatingHours->endTime()
+        );
+
+        // Handle 24:00 case
+        if ($operatingHours->endTime() === '24:00') {
+            $endTime = $date->modify('+1 day')->setTime(0, 0);
+        }
+
+        $allSlots = [];
+        $current = $startTime;
+
+        while ($current < $endTime) {
+            $slotEnd = $current->modify('+30 minutes');
+
+            $slot = TimeSlot::create($current, $slotEnd);
+            $isAvailable = $this->isSlotAvailable($room, $slot, $existingReservations);
+
+            $allSlots[] = [
+                'time' => $current->format('H:i'),
+                'startTime' => $current->format('Y-m-d H:i:s'),
+                'endTime' => $slotEnd->format('Y-m-d H:i:s'),
+                'available' => $isAvailable,
+            ];
+
+            $current = $slotEnd;
+        }
+
+        return $allSlots;
+    }
+
+    /**
      * Validate and ensure slot is available, throw exception if not
      *
      * @param  array<Reservation>  $existingReservations
