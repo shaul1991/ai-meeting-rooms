@@ -71,10 +71,10 @@ class ReservationTest extends TestCase
         $this->assertEquals(180, $reservation->timeSlot()->durationInMinutes());
     }
 
-    public function test_can_request_cancellation(): void
+    public function test_can_request_cancellation_within_2_days(): void
     {
-        // Create reservation for future date (more than 2 days ahead)
-        $start = (new DateTimeImmutable)->modify('+5 days')->setTime(10, 0, 0);
+        // 2일 이내 예약은 취소 요청만 가능
+        $start = (new DateTimeImmutable)->modify('+1 day')->setTime(10, 0, 0);
         $end = $start->modify('+1 hour');
 
         $reservation = Reservation::create(
@@ -96,9 +96,53 @@ class ReservationTest extends TestCase
         $this->assertInstanceOf(ReservationCancelRequested::class, $events[0]);
     }
 
-    public function test_cannot_request_cancellation_within_2_days(): void
+    public function test_cannot_request_cancellation_more_than_2_days_ahead(): void
     {
-        // Create reservation for tomorrow
+        // 2일 초과 예약은 즉시 취소 사용해야 함 (취소 요청 불가)
+        $start = (new DateTimeImmutable)->modify('+5 days')->setTime(10, 0, 0);
+        $end = $start->modify('+1 hour');
+
+        $reservation = Reservation::create(
+            roomId: RoomId::generate(),
+            userId: UserId::fromString('550e8400-e29b-41d4-a716-446655440000'),
+            timeSlot: TimeSlot::create($start, $end),
+            pricePerSlot: Money::create(5000),
+        );
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('예약일 2일 전 초과 시에는 즉시 취소를 이용해주세요.');
+
+        $reservation->requestCancel('회의 취소');
+    }
+
+    public function test_can_cancel_immediately_more_than_2_days_ahead(): void
+    {
+        // 2일 초과 예약은 즉시 취소 가능
+        $start = (new DateTimeImmutable)->modify('+5 days')->setTime(10, 0, 0);
+        $end = $start->modify('+1 hour');
+
+        $reservation = Reservation::create(
+            roomId: RoomId::generate(),
+            userId: UserId::fromString('550e8400-e29b-41d4-a716-446655440000'),
+            timeSlot: TimeSlot::create($start, $end),
+            pricePerSlot: Money::create(5000),
+        );
+
+        $reservation->pullDomainEvents(); // Clear creation event
+
+        $reservation->cancelImmediately('일정 변경');
+
+        $this->assertEquals(ReservationStatus::CANCELLED, $reservation->status());
+        $this->assertEquals('일정 변경', $reservation->cancelReason());
+
+        $events = $reservation->pullDomainEvents();
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(ReservationCancelled::class, $events[0]);
+    }
+
+    public function test_cannot_cancel_immediately_within_2_days(): void
+    {
+        // 2일 이내 예약은 즉시 취소 불가
         $start = (new DateTimeImmutable)->modify('+1 day')->setTime(10, 0, 0);
         $end = $start->modify('+1 hour');
 
@@ -110,9 +154,9 @@ class ReservationTest extends TestCase
         );
 
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('취소 요청은 예약일 2일 전까지만 가능합니다.');
+        $this->expectExceptionMessage('예약일 2일 전부터는 즉시 취소가 불가능합니다.');
 
-        $reservation->requestCancel('회의 취소');
+        $reservation->cancelImmediately('일정 변경');
     }
 
     public function test_can_cancel_reservation(): void

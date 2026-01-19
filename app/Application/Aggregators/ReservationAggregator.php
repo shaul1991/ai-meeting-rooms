@@ -74,7 +74,25 @@ class ReservationAggregator
     }
 
     /**
-     * Request cancellation for a reservation
+     * Immediate cancellation (more than 2 days before reservation)
+     */
+    public function immediateCancel(string $reservationId, ?string $reason = null): Reservation
+    {
+        return DB::transaction(function () use ($reservationId, $reason) {
+            $reservation = $this->reservationRepository->findByIdOrFail(
+                ReservationId::fromString($reservationId)
+            );
+
+            $reservation->cancelImmediately($reason);
+
+            $this->reservationRepository->save($reservation);
+
+            return $reservation;
+        });
+    }
+
+    /**
+     * Request cancellation for a reservation (within 2 days)
      */
     public function requestCancellation(string $reservationId, string $reason): Reservation
     {

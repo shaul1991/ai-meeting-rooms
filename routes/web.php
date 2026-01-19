@@ -31,6 +31,8 @@ Route::middleware(['auth'])->group(function () {
     // Reservations
     Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
     Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+    Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancel'])
+        ->name('reservations.cancel');
     Route::post('/reservations/{id}/cancel-request', [ReservationController::class, 'requestCancel'])
         ->name('reservations.request-cancel');
 });

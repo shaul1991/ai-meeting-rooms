@@ -58,11 +58,53 @@ class ReservationController extends Controller
         }
     }
 
+    /**
+     * 즉시 취소 (예약일 2일 전 초과)
+     */
+    public function cancel(Request $request, string $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        // 본인 예약인지 확인
+        $reservation = $this->reservationRepository->findByIdOrFail(
+            \App\Domain\Reservation\ValueObjects\ReservationId::fromString($id)
+        );
+
+        if ($reservation->userId()->value() !== Auth::id()) {
+            abort(403, '본인의 예약만 취소할 수 있습니다.');
+        }
+
+        try {
+            $this->reservationAggregator->immediateCancel($id, $validated['reason'] ?? null);
+
+            return redirect()
+                ->route('reservations.index')
+                ->with('success', '예약이 취소되었습니다.');
+
+        } catch (\DomainException $e) {
+            return back()->withErrors(['cancel' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * 취소 요청 (예약일 2일 이내)
+     */
     public function requestCancel(Request $request, string $id): RedirectResponse
     {
         $validated = $request->validate([
             'reason' => 'required|string|max:500',
         ]);
+
+        // 본인 예약인지 확인
+        $reservation = $this->reservationRepository->findByIdOrFail(
+            \App\Domain\Reservation\ValueObjects\ReservationId::fromString($id)
+        );
+
+        if ($reservation->userId()->value() !== Auth::id()) {
+            abort(403, '본인의 예약만 취소 요청할 수 있습니다.');
+        }
 
         try {
             $this->reservationAggregator->requestCancellation($id, $validated['reason']);

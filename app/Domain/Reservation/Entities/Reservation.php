@@ -113,13 +113,47 @@ class Reservation
         $this->recordEvent(new ReservationConfirmed($this->id));
     }
 
-    public function requestCancel(string $reason): void
+    /**
+     * 즉시 취소 가능 여부 확인 (예약일 48시간 초과)
+     */
+    public function canCancelImmediately(): bool
     {
-        // 예약일 2일 전까지만 취소 요청 가능
         $twoDaysBefore = $this->timeSlot->startTime()->modify('-2 days');
 
-        if (new DateTimeImmutable > $twoDaysBefore) {
-            throw new DomainException('취소 요청은 예약일 2일 전까지만 가능합니다.');
+        return new DateTimeImmutable < $twoDaysBefore;
+    }
+
+    /**
+     * 즉시 취소 (예약일 2일 전 초과 시)
+     */
+    public function cancelImmediately(?string $reason = null): void
+    {
+        if (! $this->canCancelImmediately()) {
+            throw new DomainException('예약일 2일 전부터는 즉시 취소가 불가능합니다. 취소 요청을 이용해주세요.');
+        }
+
+        $this->transitionTo(ReservationStatus::CANCELLED);
+
+        if ($reason !== null) {
+            $this->cancelReason = $reason;
+        }
+
+        $this->recordEvent(new ReservationCancelled($this->id));
+    }
+
+    /**
+     * 취소 요청 (예약일 2일 이내)
+     */
+    public function requestCancel(string $reason): void
+    {
+        // 예약일 2일 이내만 취소 요청 가능 (2일 초과면 즉시 취소 사용)
+        if ($this->canCancelImmediately()) {
+            throw new DomainException('예약일 2일 전 초과 시에는 즉시 취소를 이용해주세요.');
+        }
+
+        // 예약 시작 시간 이후에는 취소 요청 불가
+        if (new DateTimeImmutable >= $this->timeSlot->startTime()) {
+            throw new DomainException('예약 시작 시간 이후에는 취소할 수 없습니다.');
         }
 
         $this->transitionTo(ReservationStatus::CANCEL_REQUESTED);
