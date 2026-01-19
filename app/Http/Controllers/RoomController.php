@@ -20,11 +20,27 @@ class RoomController extends Controller
         private RoomRepository $roomRepository,
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
+        $date = $request->query('date')
+            ? new DateTimeImmutable($request->query('date'))
+            : new DateTimeImmutable('today');
+
         $rooms = $this->roomAggregator->getActiveRooms();
 
-        return view('rooms.index', compact('rooms'));
+        // 각 회의실별로 모든 슬롯과 예약 상태를 조회
+        $roomsWithSlots = [];
+        foreach ($rooms as $room) {
+            $roomsWithSlots[] = [
+                'room' => $room,
+                'allSlots' => $this->reservationAggregator->getAllSlotsWithStatus(
+                    $room->id()->value(),
+                    $date
+                ),
+            ];
+        }
+
+        return view('rooms.index', compact('rooms', 'date', 'roomsWithSlots'));
     }
 
     public function show(string $id, Request $request): View

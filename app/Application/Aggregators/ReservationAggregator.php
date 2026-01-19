@@ -156,6 +156,26 @@ class ReservationAggregator
     }
 
     /**
+     * Get all time slots with availability status for a room on a specific date
+     *
+     * @return array<array{time: string, startTime: string, endTime: string, available: bool}>
+     */
+    public function getAllSlotsWithStatus(string $roomId, DateTimeImmutable $date): array
+    {
+        $room = $this->roomRepository->findByIdOrFail(RoomId::fromString($roomId));
+
+        $existingReservations = $this->reservationRepository
+            ->findByRoomAndDate($room->id(), $date)
+            ->all();
+
+        return $this->slotAvailabilityService->getAllSlotsWithStatus(
+            $room,
+            $date,
+            $existingReservations,
+        );
+    }
+
+    /**
      * Check if user can make a reservation
      */
     public function canUserMakeReservation(string $userId): bool
