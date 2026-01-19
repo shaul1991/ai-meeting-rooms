@@ -59,6 +59,17 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm dependencies and build
+        run: |
+          npm ci
+          npm run build
+
       - name: Copy .env
         run: cp .env.testing .env
 
