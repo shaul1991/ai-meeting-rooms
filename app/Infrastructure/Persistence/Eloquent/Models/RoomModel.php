@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Eloquent\Models;
 
+use Database\Factories\RoomModelFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +14,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RoomModel extends Model
 {
-    use HasUuids, SoftDeletes;
+    /** @use HasFactory<RoomModelFactory> */
+    use HasFactory, HasUuids, SoftDeletes;
+
+    protected static function newFactory(): RoomModelFactory
+    {
+        return RoomModelFactory::new();
+    }
 
     protected $table = 'rooms';
 
